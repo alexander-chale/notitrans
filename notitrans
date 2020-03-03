@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+###################################################################################################
+# @descripción: Script que realiza una traducción de cualquier texto seleccionado                 #
+# utilizando el api de google translator.                                                         #
+# @parametros: $text - El mensaje a traducir.                                                     #
+# @requisitos: apt-get install zenity wget xsel xclip                                             #
+# @indicaciones:                                                                                  #
+# Dar permiso de ejecución a este archivo                                                         #
+# chmod +x ~/notitrans                                                                            #
+#  Añadimos el script a nuestro $PATH con el siguiente comando                                    #
+# sudo mv ~/notitrans /usr/local/bin/                                                             #
+#                                                                                                 #
+#   Ya nuestro script está listo, ahora tenemos que hacer que se active cuando usamos un atajo    #
+#   de teclado, para ello debemos crear un acceso personalizado.                                  #
+#                                                                                                 #
+#   Para Cinnamon, GNOME y Unity, puedes crear un atajo de teclado personalizado accediendo a     #
+#   Configuración del Sistema > Teclado > Atajos de Teclado > Atajos Personalizados,              #
+#   donde debemos pulsar sobre añadir atajo personalizado e ingresamos el nombre del atajo,       # 
+#   en mi caso le coloque translate y en la Orden colocamos “notitrans” o el nombre que le        #  
+#   hayamos puesto a nuestro script                                                               #
+#                                                                                                 #
+# @autor: Alexander Chale.                                                                        #
+# @fecha: 03-03-2020.                                                                             #
+# @todo:  Separar los párrafos según el texto y no por punto, esto hay que hacrlo en la consulta. #
+###################################################################################################
+
+
+#Capturo la selección con el mouse
+text="$(xsel -o)"
+#Paso la selección a la consulta de google translator
+translate="$(wget -4 -U "Mozilla/5.0" -qO - "http://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=es&dt=t&q=$(echo $text | sed "s/[\"'<>]//g")" | sed "s/,,,0]],,.*//g" | awk -F'"' '{print $2}')"
+
+#Escribo el resultado en un archivo
+echo "$translate" > /tmp/notitrans
+
+#Le quitos las líneas en blanco consecutivas
+translate2="$(sed '/./,/^$/!d' /tmp/notitrans)" 
+
+#Vuelvo a escribir el resultado en el mismo archivo sobreescribiéndolo
+echo "$translate2" > /tmp/notitrans
+
+#Eliminos las ultimas 6 líneas de más que me trae el google translator
+translate3="$(sed -e :a -e '$d;N;2,6ba' -e 'P;D' /tmp/notitrans)" 
+
+#Vuelvo a escribir el resultado en el mismo archivo sobreescribiéndolo
+echo "$translate3" > /tmp/notitrans
+
+#Copiar la traducción al portapales
+echo "$translate3" | xclip -selection clipboard
+
+#Imprimo el resultado en zenity
+zenity --text-info --title="Traducción" --filename=/tmp/notitrans

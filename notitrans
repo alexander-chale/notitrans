@@ -40,7 +40,7 @@ translate2="$(sed '/./,/^$/!d' /tmp/notitrans)"
 echo "$translate2" > /tmp/notitrans
 
 #Eliminos las ultimas 6 líneas de más que me trae el google translator
-translate3="$(sed -e :a -e '$d;N;2,6ba' -e 'P;D' /tmp/notitrans)" 
+translate3="$(sed -e :a -e '$d;N;2,5ba' -e 'P;D' /tmp/notitrans)" 
 
 #Vuelvo a escribir el resultado en el mismo archivo sobreescribiéndolo
 echo "$translate3" > /tmp/notitrans
